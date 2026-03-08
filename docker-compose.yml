@@ -1,0 +1,60 @@
+version: '3.9'
+
+networks:
+  elysium_network:
+    driver: bridge
+
+services:
+  elysium-api:
+    container_name: elysium-api
+    build:
+      context: .
+      target: development
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      HOST: 0.0.0.0
+      DB_HOST: elysium-db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-elysium}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      elysium-db:
+        condition: service_healthy
+    networks:
+      - elysium_network
+    healthcheck:
+      test: curl --fail http://localhost:3000/health || exit 1
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  elysium-db:
+    container_name: elysium-db
+    image: postgres:17-alpine
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-elysium}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - elysium_db_data:/var/lib/postgresql/data
+    networks:
+      - elysium_network
+    healthcheck:
+      test: pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-elysium}
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 5s
+
+volumes:
+  elysium_db_data:

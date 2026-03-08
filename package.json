@@ -1,0 +1,43 @@
+{
+  "name": "elysium-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "migrate": "knex migrate:latest --knexfile src/config/knexfile.js",
+    "migrate:make": "knex migrate:make --knexfile src/config/knexfile.js",
+    "migrate:rollback": "knex migrate:rollback --knexfile src/config/knexfile.js",
+    "seed": "knex seed:run --knexfile src/config/knexfile.js",
+    "seed:make": "knex seed:make --knexfile src/config/knexfile.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Electrix67130/elysium-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Electrix67130/elysium-api/issues"
+  },
+  "homepage": "https://github.com/Electrix67130/elysium-api#readme",
+  "dependencies": {
+    "@fastify/autoload": "^6.3.1",
+    "@fastify/cors": "^11.2.0",
+    "@fastify/sensible": "^6.0.4",
+    "dotenv": "^17.3.1",
+    "fastify": "^5.8.2",
+    "knex": "^3.1.0",
+    "pg": "^8.20.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
