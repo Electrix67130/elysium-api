@@ -10,6 +10,9 @@ const envSchema = z.object({
   DB_NAME: z.string().default('elysium'),
   DB_USER: z.string().default('postgres'),
   DB_PASSWORD: z.string().default('postgres'),
+  JWT_SECRET: z.string().default('change-me-in-production'),
+  JWT_ACCESS_EXPIRES: z.string().default('15m'),
+  API_KEY: z.string().default('change-me-in-production'),
 });
 
 const env = envSchema.parse(process.env);

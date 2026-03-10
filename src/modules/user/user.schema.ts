@@ -25,11 +25,19 @@ export const updateUserSchema = z.object({
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 
-export type UserRow = CreateUser & {
+export type UserRow = {
   id: string;
+  username: string;
+  email: string;
+  password_hash: string;
+  display_name?: string;
+  avatar_url?: string;
+  country?: string;
+  bio?: string;
+  is_official: boolean;
+  status_text?: string;
+  is_online?: boolean;
+  last_seen_at?: string;
   created_at: string;
   updated_at: string;
-  status_text?: string;
-  is_online?: string;
-  last_seen_at?: string;
 };
