@@ -8,13 +8,14 @@ describe('Conversation routes (integration)', () => {
   beforeAll(async () => {
     app = await buildTestApp();
 
-    // Creer un utilisateur et obtenir un token
+    // Creer un utilisateur unique et obtenir un token
+    const unique = Date.now();
     const registerRes = await app.inject({
       method: 'POST',
       url: '/auth/register',
       payload: {
-        username: 'convtestuser',
-        email: 'convtest@test.com',
+        username: `convtest_${unique}`,
+        email: `convtest_${unique}@test.com`,
         password: 'password123',
       },
     });

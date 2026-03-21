@@ -283,6 +283,28 @@ axios.get('/conversations?page=1&limit=20', {
 // Response 401 si token manquant/invalide
 ```
 
+Pour les conversations de type `dm`, chaque element contient un champ `recipient` avec les infos de l'autre membre :
+
+```ts
+// Conversation DM enrichie
+{
+    id: string,
+    type: 'dm',
+    name: null,
+    recipient: {
+        id: string,              // UUID de l'autre utilisateur
+        username: string,
+        display_name: string | null,
+        avatar_url: string | null,
+        is_online: boolean,
+    },
+    created_at: string,
+    updated_at: string,
+}
+```
+
+> Le front peut utiliser `recipient.display_name || recipient.username` comme nom de conversation.
+
 **Create (generique) :**
 ```ts
 {

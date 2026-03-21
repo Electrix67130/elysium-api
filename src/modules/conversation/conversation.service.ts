@@ -21,6 +21,7 @@ class ConversationService extends BaseService<ConversationRow> {
 
   /**
    * Retourne les conversations dont l'utilisateur est membre (paginee).
+   * Pour les DMs, enrichit avec les infos de l'autre membre.
    */
   async findByUserId({
     userId,
@@ -51,8 +52,47 @@ class ConversationService extends BaseService<ConversationRow> {
       baseQuery.clone().count('* as count') as Promise<{ count: string }[]>,
     ]);
 
+    // Pour les DMs, recuperer l'autre membre avec ses infos
+    const conversations = items as ConversationRow[];
+    const dmConversations = conversations.filter((c) => c.type === 'dm');
+
+    if (dmConversations.length > 0) {
+      const dmIds = dmConversations.map((c) => c.id);
+
+      // Recuperer l'autre membre de chaque DM (celui qui n'est pas userId)
+      const otherMembers = await this.db('conversation_member')
+        .join('user', 'conversation_member.user_id', 'user.id')
+        .whereIn('conversation_member.conversation_id', dmIds)
+        .whereNot('conversation_member.user_id', userId)
+        .select(
+          'conversation_member.conversation_id',
+          'user.id as user_id',
+          'user.username',
+          'user.display_name',
+          'user.avatar_url',
+          'user.is_online',
+        );
+
+      const otherMemberMap = new Map(
+        otherMembers.map((m: Record<string, unknown>) => [m.conversation_id as string, m]),
+      );
+
+      for (const conv of dmConversations) {
+        const other = otherMemberMap.get(conv.id);
+        if (other) {
+          (conv as Record<string, unknown>).recipient = {
+            id: other.user_id,
+            username: other.username,
+            display_name: other.display_name,
+            avatar_url: other.avatar_url,
+            is_online: other.is_online,
+          };
+        }
+      }
+    }
+
     return {
-      data: items as ConversationRow[],
+      data: conversations,
       meta: {
         total: parseInt(count, 10),
         page,
