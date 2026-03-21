@@ -2,8 +2,27 @@ import buildTestApp from '@tests/helpers/build-app';
 
 describe('Conversation routes (integration)', () => {
   let app: Awaited<ReturnType<typeof buildTestApp>>;
+  let accessToken: string;
+  let userId: string;
 
-  beforeAll(async () => { app = await buildTestApp(); });
+  beforeAll(async () => {
+    app = await buildTestApp();
+
+    // Creer un utilisateur et obtenir un token
+    const registerRes = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload: {
+        username: 'convtestuser',
+        email: 'convtest@test.com',
+        password: 'password123',
+      },
+    });
+    const registerBody = JSON.parse(registerRes.payload);
+    accessToken = registerBody.access_token;
+    userId = registerBody.user.id;
+  });
+
   afterAll(async () => { await app.close(); });
 
   describe('POST /conversations', () => {
@@ -31,12 +50,46 @@ describe('Conversation routes (integration)', () => {
   });
 
   describe('GET /conversations', () => {
-    it('should return 200 with paginated results', async () => {
+    it('should return 401 without token', async () => {
       const res = await app.inject({ method: 'GET', url: '/conversations' });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('should return 200 with paginated results for authenticated user', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/conversations',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       expect(res.statusCode).toBe(200);
       const body = JSON.parse(res.payload);
       expect(body).toHaveProperty('data');
       expect(body).toHaveProperty('meta');
+    });
+
+    it('should only return conversations the user is a member of', async () => {
+      // Creer une conversation et ajouter l'utilisateur comme membre
+      const convRes = await app.inject({ method: 'POST', url: '/conversations', payload: { type: 'group', name: 'My Conv' } });
+      const conv = JSON.parse(convRes.payload);
+
+      await app.inject({
+        method: 'POST',
+        url: '/conversation-members',
+        payload: { user_id: userId, conversation_id: conv.id },
+      });
+
+      // Creer une autre conversation sans ajouter l'utilisateur
+      await app.inject({ method: 'POST', url: '/conversations', payload: { type: 'group', name: 'Not Mine' } });
+
+      const res = await app.inject({
+        method: 'GET',
+        url: '/conversations',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const body = JSON.parse(res.payload);
+      const names = body.data.map((c: any) => c.name);
+      expect(names).toContain('My Conv');
+      expect(names).not.toContain('Not Mine');
     });
   });
 

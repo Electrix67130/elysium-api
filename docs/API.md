@@ -25,18 +25,18 @@ Inscription d'un nouvel utilisateur.
 ```ts
 // Request
 axios.post('/auth/register', {
-  username: string,       // requis, 3-50 chars
-  email: string,          // requis, email valide
-  password: string,       // requis, 8-128 chars
-  display_name?: string,  // max 100 chars
-  country?: string,       // 2 chars (ISO 3166-1, ex: "FR")
+    username: string,       // requis, 3-50 chars
+    email: string,          // requis, email valide
+    password: string,       // requis, 8-128 chars
+    display_name?: string,  // max 100 chars
+    country?: string,       // 2 chars (ISO 3166-1, ex: "FR")
 })
 
 // Response 201
 {
-  user: { id, username, email, display_name, country, is_official, created_at, updated_at },
-  access_token: string,   // JWT, expire apres 15min
-  refresh_token: string,  // JWT, n'expire jamais (rotation a chaque refresh)
+    user: { id, username, email, display_name, country, is_official, created_at, updated_at },
+    access_token: string,   // JWT, expire apres 15min
+        refresh_token: string,  // JWT, n'expire jamais (rotation a chaque refresh)
 }
 ```
 
@@ -44,8 +44,8 @@ axios.post('/auth/register', {
 
 ```ts
 axios.post('/auth/login', {
-  email: string,     // requis
-  password: string,  // requis
+    email: string,     // requis
+    password: string,  // requis
 })
 
 // Response 200 — meme format que register
@@ -57,7 +57,7 @@ Renouveler le access token. Le refresh token est tourne (l'ancien est invalide).
 
 ```ts
 axios.post('/auth/refresh', {
-  refresh_token: string,  // requis
+    refresh_token: string,  // requis
 })
 
 // Response 200
@@ -70,7 +70,7 @@ Revoque tous les refresh tokens de l'utilisateur.
 
 ```ts
 axios.post('/auth/logout', null, {
-  headers: { Authorization: `Bearer ${accessToken}` }
+    headers: { Authorization: `Bearer ${accessToken}` }
 })
 
 // Response 204
@@ -80,7 +80,7 @@ axios.post('/auth/logout', null, {
 
 ```ts
 axios.get('/auth/me', {
-  headers: { Authorization: `Bearer ${accessToken}` }
+    headers: { Authorization: `Bearer ${accessToken}` }
 })
 
 // Response 200
@@ -135,28 +135,28 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  username: string,        // requis, 3-50 chars
-  email: string,           // requis, email valide
-  password_hash: string,   // requis (utiliser /auth/register pour l'inscription)
-  display_name?: string,   // max 100 chars
-  avatar_url?: string,     // URL valide, max 500 chars
-  country?: string,        // 2 chars
-  bio?: string,
-  is_official?: boolean,   // default false
+    username: string,        // requis, 3-50 chars
+        email: string,           // requis, email valide
+        password_hash: string,   // requis (utiliser /auth/register pour l'inscription)
+        display_name?: string,   // max 100 chars
+        avatar_url?: string,     // URL valide, max 500 chars
+        country?: string,        // 2 chars
+        bio?: string,
+        is_official?: boolean,   // default false
 }
 ```
 
 **Update (tous optionnels) :**
 ```ts
 {
-  username?: string,
-  email?: string,
-  display_name?: string,
-  avatar_url?: string,
-  country?: string,
-  bio?: string,
-  is_official?: boolean,
-  status_text?: string,    // max 255 chars
+    username?: string,
+        email?: string,
+        display_name?: string,
+        avatar_url?: string,
+        country?: string,
+        bio?: string,
+        is_official?: boolean,
+        status_text?: string,    // max 255 chars
 }
 ```
 
@@ -167,11 +167,11 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  name: string,            // requis, 1-100 chars
-  slug: string,            // requis, 1-50 chars
-  image_url?: string,      // URL valide, max 500 chars
-  icon_url?: string,       // URL valide, max 500 chars
-  brand_color?: string,    // hex color, ex: "#FF4655"
+    name: string,            // requis, 1-100 chars
+        slug: string,            // requis, 1-50 chars
+        image_url?: string,      // URL valide, max 500 chars
+        icon_url?: string,       // URL valide, max 500 chars
+        brand_color?: string,    // hex color, ex: "#FF4655"
 }
 ```
 
@@ -184,10 +184,10 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  name: string,            // requis, 1-100 chars
-  image_url?: string,      // URL valide, max 500 chars
-  description?: string,
-  game_id?: string,        // UUID
+    name: string,            // requis, 1-100 chars
+        image_url?: string,      // URL valide, max 500 chars
+        description?: string,
+        game_id?: string,        // UUID
 }
 ```
 
@@ -200,15 +200,15 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  sender_id: string,       // UUID, requis
-  receiver_id: string,     // UUID, requis
+    sender_id: string,       // UUID, requis
+        receiver_id: string,     // UUID, requis
 }
 ```
 
 **Update :**
 ```ts
 {
-  status?: 'pending' | 'accepted',
+    status?: 'pending' | 'accepted',
 }
 ```
 
@@ -219,8 +219,8 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  blocker_id: string,      // UUID, requis
-  blocked_id: string,      // UUID, requis
+    blocker_id: string,      // UUID, requis
+        blocked_id: string,      // UUID, requis
 }
 ```
 
@@ -233,16 +233,16 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  user_id: string,         // UUID, requis
-  team_id: string,         // UUID, requis
-  role?: 'capitaine' | 'manager' | 'membre',  // default 'membre'
+    user_id: string,         // UUID, requis
+        team_id: string,         // UUID, requis
+        role?: 'capitaine' | 'manager' | 'membre',  // default 'membre'
 }
 ```
 
 **Update :**
 ```ts
 {
-  role?: 'capitaine' | 'manager' | 'membre',
+    role?: 'capitaine' | 'manager' | 'membre',
 }
 ```
 
@@ -253,14 +253,14 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  user_id: string,              // UUID, requis
-  game_id: string,              // UUID, requis
-  wins?: number,                // default 0
-  losses?: number,              // default 0
-  win_rate?: number,            // 0-100, default 0
-  total_matches?: number,       // default 0
-  tournaments_played?: number,  // default 0
-  tournaments_won?: number,     // default 0
+    user_id: string,              // UUID, requis
+        game_id: string,              // UUID, requis
+        wins?: number,                // default 0
+        losses?: number,              // default 0
+        win_rate?: number,            // 0-100, default 0
+        total_matches?: number,       // default 0
+        tournaments_played?: number,  // default 0
+        tournaments_won?: number,     // default 0
 }
 ```
 
@@ -270,20 +270,90 @@ axios.delete('/users/:id')
 
 ### Conversations — `/conversations`
 
-**Create :**
+#### GET /conversations `🔒 JWT`
+
+Retourne uniquement les conversations dont l'utilisateur connecte est membre (paginee).
+
+```ts
+axios.get('/conversations?page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+{ data: Conversation[], meta: { total, page, limit, totalPages } }
+// Response 401 si token manquant/invalide
+```
+
+**Create (generique) :**
 ```ts
 {
-  name?: string,           // max 100 chars (null pour DM)
-  type: 'dm' | 'group' | 'team',  // requis
-  team_id?: string,        // UUID (requis si type='team')
+    name?: string,           // max 100 chars (null pour DM)
+    type: 'dm' | 'group' | 'team' | 'tournament',  // requis
+    team_id?: string,        // UUID (requis si type='team')
+    tournament_id?: string,  // UUID (requis si type='tournament')
 }
 ```
 
 **Update :**
 ```ts
 {
-  name?: string,
+    name?: string,
 }
+```
+
+**Routes custom (creation avec logique metier) :**
+
+#### POST /conversations/dm
+
+Cree un DM entre 2 utilisateurs. Retourne la conversation existante si elle existe deja.
+
+```ts
+axios.post('/conversations/dm', {
+    user_id_1: string,   // UUID, requis
+    user_id_2: string,   // UUID, requis (doit etre different de user_id_1)
+})
+// Response 201 — conversation + les 2 membres sont ajoutes automatiquement
+```
+
+#### POST /conversations/team
+
+Cree une conversation d'equipe et ajoute automatiquement tous les membres de l'equipe.
+
+```ts
+axios.post('/conversations/team', {
+    team_id: string,     // UUID, requis
+    name?: string,       // max 100 chars
+})
+// Response 201 — conversation + tous les team_membership sont ajoutes
+```
+
+#### POST /conversations/tournament
+
+Cree une conversation de tournoi et ajoute automatiquement tous les participants confirmes.
+
+```ts
+axios.post('/conversations/tournament', {
+    tournament_id: string, // UUID, requis
+    name?: string,         // max 100 chars
+})
+// Response 201 — conversation + tous les participants status='confirmed' sont ajoutes
+```
+
+#### POST /conversations/team/:teamId/sync
+
+Synchronise les membres de la conversation avec les membres actuels de l'equipe (ajout des nouveaux, retrait des partis).
+
+```ts
+axios.post('/conversations/team/:teamId/sync')
+// Response 204
+```
+
+#### POST /conversations/tournament/:tournamentId/sync
+
+Synchronise les membres de la conversation avec les participants confirmes du tournoi.
+
+```ts
+axios.post('/conversations/tournament/:tournamentId/sync')
+// Response 204
 ```
 
 ---
@@ -293,19 +363,19 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  user_id: string,         // UUID, requis
-  conversation_id: string, // UUID, requis
-  is_pinned?: boolean,     // default false
-  is_muted?: boolean,      // default false
+    user_id: string,         // UUID, requis
+        conversation_id: string, // UUID, requis
+        is_pinned?: boolean,     // default false
+        is_muted?: boolean,      // default false
 }
 ```
 
 **Update :**
 ```ts
 {
-  is_pinned?: boolean,
-  is_muted?: boolean,
-  unread_count?: number,   // >= 0
+    is_pinned?: boolean,
+        is_muted?: boolean,
+        unread_count?: number,   // >= 0
 }
 ```
 
@@ -316,18 +386,18 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  conversation_id: string,  // UUID, requis
-  sender_id: string,        // UUID, requis
-  content: string,          // requis, min 1 char
-  sender_tag?: string,      // max 50 chars, ex: "Organisateur"
-  sender_tag_color?: string, // hex color, ex: "#FF4655"
+    conversation_id: string,  // UUID, requis
+        sender_id: string,        // UUID, requis
+        content: string,          // requis, min 1 char
+        sender_tag?: string,      // max 50 chars, ex: "Organisateur"
+        sender_tag_color?: string, // hex color, ex: "#FF4655"
 }
 ```
 
 **Update :**
 ```ts
 {
-  content?: string,
+    content?: string,
 }
 ```
 
@@ -338,16 +408,16 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  message_id: string,      // UUID, requis
-  user_id: string,         // UUID, requis
-  emoji: string,           // requis, 1-10 chars
+    message_id: string,      // UUID, requis
+        user_id: string,         // UUID, requis
+        emoji: string,           // requis, 1-10 chars
 }
 ```
 
 **Update :**
 ```ts
 {
-  emoji?: string,
+    emoji?: string,
 }
 ```
 
@@ -358,18 +428,18 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  name: string,                     // requis, 1-200 chars
-  game_id: string,                  // UUID, requis
-  organizer_id: string,             // UUID, requis
-  status?: 'upcoming' | 'ongoing' | 'completed',  // default 'upcoming'
-  date?: string,                    // ISO 8601
-  max_players?: number,             // min 2
-  team_size?: number,               // min 1
-  is_official?: boolean,            // default false
-  description?: string,
-  requires_approval?: boolean,      // default false
-  prize_pool?: string,              // max 100 chars
-  registration_closes_at?: string,  // ISO 8601
+    name: string,                     // requis, 1-200 chars
+        game_id: string,                  // UUID, requis
+        organizer_id: string,             // UUID, requis
+        status?: 'upcoming' | 'ongoing' | 'completed',  // default 'upcoming'
+        date?: string,                    // ISO 8601
+        max_players?: number,             // min 2
+        team_size?: number,               // min 1
+        is_official?: boolean,            // default false
+        description?: string,
+        requires_approval?: boolean,      // default false
+        prize_pool?: string,              // max 100 chars
+        registration_closes_at?: string,  // ISO 8601
 }
 ```
 
@@ -382,18 +452,72 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  user_id: string,         // UUID, requis
-  tournament_id: string,   // UUID, requis
-  team_id?: string,        // UUID (null si solo)
-  status?: 'confirmed' | 'pending' | 'cancelled',  // default 'pending'
+    user_id: string,         // UUID, requis
+        tournament_id: string,   // UUID, requis
+        team_id?: string,        // UUID (null si solo)
+        status?: 'confirmed' | 'pending' | 'cancelled',  // default 'pending'
 }
 ```
 
 **Update :**
 ```ts
 {
-  status?: 'confirmed' | 'pending' | 'cancelled',
+    status?: 'confirmed' | 'pending' | 'cancelled',
 }
+```
+
+---
+
+### Tournament Recurrences — `/tournament-recurrences`
+
+Gestion de la recurrence des tournois officiels. Seuls les tournois `is_official = true` peuvent etre recurrents.
+
+**Create :**
+```ts
+{
+    source_tournament_id: string,   // UUID, requis — le tournoi modele
+    recurrence_type: 'weekly' | 'monthly',  // requis
+    recurrence_end_at?: string,     // ISO 8601 (null = pas de fin)
+    is_active?: boolean,            // default true
+}
+```
+
+**Update :**
+```ts
+{
+    recurrence_type?: 'weekly' | 'monthly',
+    recurrence_end_at?: string | null,
+    is_active?: boolean,
+}
+```
+
+**Routes custom :**
+
+#### POST /tournament-recurrences/:id/generate
+
+Genere la prochaine occurrence du tournoi recurrent (clone le tournoi source avec la date suivante).
+
+```ts
+axios.post('/tournament-recurrences/:id/generate')
+// Response 201 — nouveau tournoi cree avec status='upcoming'
+```
+
+#### POST /tournament-recurrences/:id/generate-all
+
+Genere toutes les occurrences en attente jusqu'a maintenant + la prochaine future.
+
+```ts
+axios.post('/tournament-recurrences/:id/generate-all')
+// Response 201 — tableau de tournois crees
+```
+
+#### PATCH /tournament-recurrences/:id/deactivate
+
+Desactive la recurrence (is_active = false). Les occurrences deja generees restent intactes.
+
+```ts
+axios.patch('/tournament-recurrences/:id/deactivate')
+// Response 200 — recurrence mise a jour
 ```
 
 ---
@@ -403,18 +527,63 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  user_id: string,          // UUID, requis
-  twitch_id: string,        // requis, 1-100 chars
-  twitch_username?: string, // max 100 chars
-  display_name?: string,    // max 100 chars
-  is_live?: boolean,        // default false
-  viewer_count?: number,    // default 0
-  stream_title?: string,    // max 500 chars
-  thumbnail_url?: string,   // URL valide, max 500 chars
+    user_id: string,          // UUID, requis
+        twitch_id: string,        // requis, 1-100 chars
+        twitch_username?: string, // max 100 chars
+        display_name?: string,    // max 100 chars
+        is_live?: boolean,        // default false
+        viewer_count?: number,    // default 0
+        stream_title?: string,    // max 500 chars
+        thumbnail_url?: string,   // URL valide, max 500 chars
 }
 ```
 
 **Update :** memes champs (sans user_id/twitch_id), tous optionnels.
+
+---
+
+### News — `/news`
+
+**Create :**
+```ts
+{
+  title: string,              // requis, 1-200 chars
+  summary: string,            // requis, 1-500 chars
+  content: string,            // requis, min 1 char
+  image_url?: string,         // URL valide, max 500 chars
+  category: 'update' | 'tournament' | 'community' | 'esport',  // requis
+  author_id: string,          // UUID, requis (utilisateur qui publie)
+  published_at?: string,      // ISO 8601 (default now)
+}
+```
+
+**Update :**
+```ts
+{
+  title?: string,
+  summary?: string,
+  content?: string,
+  image_url?: string,
+  category?: 'update' | 'tournament' | 'community' | 'esport',
+  published_at?: string,
+}
+```
+
+**Response :**
+```ts
+{
+  id: string,
+  title: string,
+  summary: string,
+  content: string,
+  image_url: string | null,
+  category: 'update' | 'tournament' | 'community' | 'esport',
+  author: { id: string, username: string, display_name: string | null },
+  published_at: string,
+  created_at: string,
+  updated_at: string,
+}
+```
 
 ---
 
@@ -423,22 +592,22 @@ axios.delete('/users/:id')
 **Create :**
 ```ts
 {
-  user_id: string,         // UUID, requis
-  issued_by: string,       // UUID, requis (admin/moderateur)
-  type: 'warning' | 'ban', // requis
-  scope: 'platform' | 'tournament' | 'chat',  // requis
-  reason?: string,
-  expires_at?: string,     // ISO 8601 (null = permanent)
-  is_active?: boolean,     // default true
+    user_id: string,         // UUID, requis
+        issued_by: string,       // UUID, requis (admin/moderateur)
+        type: 'warning' | 'ban', // requis
+        scope: 'platform' | 'tournament' | 'chat',  // requis
+        reason?: string,
+        expires_at?: string,     // ISO 8601 (null = permanent)
+        is_active?: boolean,     // default true
 }
 ```
 
 **Update :**
 ```ts
 {
-  reason?: string,
-  expires_at?: string,
-  is_active?: boolean,
+    reason?: string,
+        expires_at?: string,
+        is_active?: boolean,
 }
 ```
 
@@ -450,9 +619,9 @@ Toutes les erreurs suivent le meme format :
 
 ```ts
 {
-  statusCode: number,
-  error: string,
-  message: string | string[],  // string[] pour les erreurs de validation Zod
+    statusCode: number,
+        error: string,
+        message: string | string[],  // string[] pour les erreurs de validation Zod
 }
 ```
 
@@ -474,32 +643,32 @@ Toutes les erreurs suivent le meme format :
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
+    baseURL: 'http://localhost:3000',
+    headers: { 'x-api-key': import.meta.env.VITE_API_KEY },
 });
 
 // Interceptor pour ajouter le JWT automatiquement
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+    const token = localStorage.getItem('access_token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
 });
 
 // Interceptor pour refresh automatique du token
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401 && !error.config._retry) {
-      error.config._retry = true;
-      const refreshToken = localStorage.getItem('refresh_token');
-      const { data } = await api.post('/auth/refresh', { refresh_token: refreshToken });
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      error.config.headers.Authorization = `Bearer ${data.access_token}`;
-      return api(error.config);
-    }
-    return Promise.reject(error);
-  },
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401 && !error.config._retry) {
+            error.config._retry = true;
+            const refreshToken = localStorage.getItem('refresh_token');
+            const { data } = await api.post('/auth/refresh', { refresh_token: refreshToken });
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('refresh_token', data.refresh_token);
+            error.config.headers.Authorization = `Bearer ${data.access_token}`;
+            return api(error.config);
+        }
+        return Promise.reject(error);
+    },
 );
 
 export default api;

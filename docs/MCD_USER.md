@@ -119,8 +119,9 @@
 ├──────────────────────────────────────────────┤
 │ PK  id                : UUID                 │
 │     name              : VARCHAR(100)          │  ← null pour DM
-│     type              : ENUM                  │  ← 'dm', 'group', 'team'
+│     type              : ENUM                  │  ← 'dm', 'group', 'team', 'tournament'
 │ FK  team_id           : UUID → TEAM           │  ← null sauf type='team'
+│ FK  tournament_id     : UUID → TOURNAMENT     │  ← null sauf type='tournament'
 │     created_at        : TIMESTAMP             │
 │     updated_at        : TIMESTAMP             │
 └──────────────────────────────────────────────┘
@@ -184,8 +185,24 @@
 │     requires_approval : BOOLEAN               │  ← inscription avec validation manuelle
 │     prize_pool        : VARCHAR(100)          │
 │     registration_closes_at : TIMESTAMP        │  ← date limite d'inscription
+│ FK  recurrence_id     : UUID → TOURNAMENT_RECURRENCE │  ← null si non recurrent
 │     created_at        : TIMESTAMP             │
 │     updated_at        : TIMESTAMP             │
+└──────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────┐
+│       TOURNAMENT_RECURRENCE                  │
+├──────────────────────────────────────────────┤
+│ PK  id                : UUID                 │
+│ FK  source_tournament_id : UUID → TOURNAMENT │  ← tournoi modele
+│     recurrence_type   : ENUM                 │  ← 'weekly', 'monthly'
+│     recurrence_end_at : TIMESTAMP            │  ← null = pas de fin
+│     is_active         : BOOLEAN              │  ← permet de stopper la recurrence
+│     created_at        : TIMESTAMP            │
+│     updated_at        : TIMESTAMP            │
+├──────────────────────────────────────────────┤
+│ Contrainte: source_tournament.is_official = true │
 └──────────────────────────────────────────────┘
 
 
@@ -233,6 +250,22 @@
 │     created_at        : TIMESTAMP             │
 │     updated_at        : TIMESTAMP             │
 └──────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────┐
+│                    NEWS                       │
+├──────────────────────────────────────────────┤
+│ PK  id                : UUID                 │
+│     title             : VARCHAR(200)          │
+│     summary           : VARCHAR(500)          │
+│     content           : TEXT                  │
+│     image_url         : VARCHAR(500)          │
+│     category          : ENUM                  │  ← 'update', 'tournament', 'community', 'esport'
+│ FK  author_id         : UUID → USER          │
+│     published_at      : TIMESTAMP             │
+│     created_at        : TIMESTAMP             │
+│     updated_at        : TIMESTAMP             │
+└──────────────────────────────────────────────┘
 ```
 
 ---
@@ -249,6 +282,7 @@ USER ─── 0,N ─── PLAYER_STATS ─── N,1 ─── GAME
   ├── 0,N ── TEAM_MEMBERSHIP ─── N,1 ─── TEAM ── N,1 ── GAME
   │
   ├── 0,N ── CONVERSATION_MEMBER ── N,1 ── CONVERSATION ── 0,1 ── TEAM
+  │                                                        ├── 0,1 ── TOURNAMENT
   │
   ├── 0,N ── CHAT_MESSAGE ─── N,1 ─── CONVERSATION
   │
@@ -257,8 +291,12 @@ USER ─── 0,N ─── PLAYER_STATS ─── N,1 ─── GAME
   ├── 0,N ── TOURNAMENT (organizer_id)
   │
   ├── 0,N ── TOURNAMENT_PARTICIPATION ── N,1 ── TOURNAMENT ── N,1 ── GAME
+  │                                            │
+  │                                            └── 0,1 ── TOURNAMENT_RECURRENCE
   │
   ├── 0,1 ── TWITCH_LINK
+  │
+  ├── 0,N ── NEWS (author_id)
   │
   └── 0,N ── USER_SANCTION (user_id + issued_by)
 ```
@@ -280,7 +318,10 @@ USER ─── 0,N ─── PLAYER_STATS ─── N,1 ─── GAME
 | `USER → TOURNAMENT` (Participation) | N:N         | Inscriptions aux tournois                      |
 | `USER → TWITCH_LINK`                | 1:0..1      | Compte Twitch lie (optionnel)                  |
 | `USER → USER_SANCTION` (user_id)    | 1:N         | Sanctions recues (warnings, bans)              |
+| `USER → NEWS` (author)              | 1:N         | Articles publies                               |
 | `USER → USER_SANCTION` (issued_by)  | 1:N         | Sanctions emises (en tant qu'admin/moderateur) |
+| `TOURNAMENT → TOURNAMENT_RECURRENCE` | 1:0..1     | Recurrence (weekly/monthly) pour tournois officiels |
+| `CONVERSATION → TOURNAMENT`         | 0..1:1      | Conversation liee a un tournoi                 |
 
 ---
 
@@ -359,6 +400,8 @@ SELECT EXISTS (
 | TOURNAMENT_PARTICIPATION  | `Participant`                  | `src/mocks/participantsData.ts`  |
 | TWITCH_LINK               | `TwitchStreamer`               | `src/types/home.ts`             |
 | USER_SANCTION             | *nouveau* — pas dans le codebase actuel | —                       |
+| NEWS                      | *nouveau*                      | `src/modules/news/`            |
+| TOURNAMENT_RECURRENCE     | *nouveau*                      | `src/modules/tournament-recurrence/` |
 
 ---
 
@@ -375,3 +418,9 @@ SELECT EXISTS (
 - `TOURNAMENT_PARTICIPATION.registered_at` remplace l'ancien `registration_date` — coherence de nommage
 - `PLAYER_STATS.tournaments_won` (avec un seul 'n') — nombre de tournois gagnes par jeu
 - `USER.is_official` remplace l'ancien `official_member` — coherence avec le prefixe `is_` des booleens
+- `CONVERSATION.type` inclut desormais `'tournament'` — conversations auto-peuplees avec les participants confirmes
+- `CONVERSATION` DM : exactement 2 membres, crees via `/conversations/dm`
+- `CONVERSATION` team : membres synchronises avec `team_membership` via `/conversations/team/:id/sync`
+- `CONVERSATION` tournament : membres synchronises avec `tournament_participation` (status='confirmed') via `/conversations/tournament/:id/sync`
+- `TOURNAMENT_RECURRENCE` : seuls les tournois `is_official = true` peuvent avoir une recurrence
+- `NEWS.category` : 'update', 'tournament', 'community', 'esport'
