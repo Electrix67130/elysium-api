@@ -33,6 +33,7 @@ export type UpdateTournament = z.infer<typeof updateTournamentSchema>;
 
 export type TournamentRow = CreateTournament & {
   id: string;
+  recurrence_id: string | null;
   created_at: string;
   updated_at: string;
 };
