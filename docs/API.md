@@ -160,6 +160,20 @@ axios.delete('/users/:id')
 }
 ```
 
+#### GET /users/search
+
+Recherche d'utilisateurs par username ou display_name. Minimum 3 caracteres requis.
+
+```ts
+axios.get('/users/search?q=jul&limit=20')
+// Response 200
+[
+    { id, username, display_name, avatar_url, is_online, country },
+    ...
+]
+// Response 400 si q < 3 caracteres
+```
+
 ---
 
 ### Games — `/games`
@@ -197,11 +211,45 @@ axios.delete('/users/:id')
 
 ### Friendships — `/friendships`
 
+#### GET /friendships `🔒 JWT`
+
+Retourne les amis acceptes de l'utilisateur connecte avec leurs infos (paginee).
+
+```ts
+axios.get('/friendships?page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+{
+    data: [
+        { id, username, display_name, avatar_url, is_online, last_seen_at, status_text },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+// Response 401 si token manquant/invalide
+```
+
+#### GET /friendships/pending `🔒 JWT`
+
+Retourne les demandes d'amis en attente recues par l'utilisateur connecte.
+
+```ts
+axios.get('/friendships/pending', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+[
+    { friendship_id, created_at, user_id, username, display_name, avatar_url },
+    ...
+]
+```
+
 **Create :**
 ```ts
 {
     sender_id: string,       // UUID, requis
-        receiver_id: string,     // UUID, requis
+    receiver_id: string,     // UUID, requis
 }
 ```
 
