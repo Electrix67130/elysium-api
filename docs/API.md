@@ -253,6 +253,24 @@ axios.get('/friendships/pending?page=1&limit=20', {
 }
 ```
 
+#### GET /friendships/sent `🔒 JWT`
+
+Retourne les demandes d'amis en attente envoyees par l'utilisateur connecte (pagine).
+
+```ts
+axios.get('/friendships/sent?page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+{
+    data: [
+        { friendship_id, created_at, user_id, username, display_name, avatar_url },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+```
+
 **Create :**
 ```ts
 {

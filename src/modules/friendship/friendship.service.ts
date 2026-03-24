@@ -102,6 +102,48 @@ class FriendshipService extends BaseService<FriendshipRow> {
   }
 
   /**
+   * Retourne les demandes d'amis en attente envoyees par l'utilisateur (pagine).
+   */
+  async findSentRequests({
+    userId,
+    page = 1,
+    limit = 20,
+  }: {
+    userId: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const baseQuery = this.db(this.table)
+      .where({ sender_id: userId, status: 'pending' })
+      .join('user', 'friendship.receiver_id', 'user.id');
+
+    const [{ count }] = await baseQuery.clone().count('* as count') as { count: string }[];
+
+    const data = await baseQuery.clone()
+      .select(
+        'friendship.id as friendship_id',
+        'friendship.created_at',
+        'user.id as user_id',
+        'user.username',
+        'user.display_name',
+        'user.avatar_url',
+      )
+      .orderBy('friendship.created_at', 'desc')
+      .limit(limit)
+      .offset((page - 1) * limit);
+
+    return {
+      data,
+      meta: {
+        total: parseInt(count, 10),
+        page,
+        limit,
+        totalPages: Math.ceil(parseInt(count, 10) / limit),
+      },
+    };
+  }
+
+  /**
    * Retourne les demandes d'amis en attente recues par l'utilisateur (pagine).
    */
   async findPendingRequests({

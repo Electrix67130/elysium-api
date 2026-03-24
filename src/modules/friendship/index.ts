@@ -22,10 +22,16 @@ export default fp((fastify, opts, done) => {
     return service.findFriendsOfUser({ userId: request.user.sub, ...query });
   });
 
-  // GET /friendships/pending — demandes d'amis en attente (pagine)
+  // GET /friendships/pending — demandes d'amis en attente recues (pagine)
   fastify.get('/friendships/pending', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = paginationSchema.parse(request.query);
     return service.findPendingRequests({ userId: request.user.sub, ...query });
+  });
+
+  // GET /friendships/sent — demandes d'amis en attente envoyees (pagine)
+  fastify.get('/friendships/sent', { preHandler: [fastify.authenticate] }, async (request) => {
+    const query = paginationSchema.parse(request.query);
+    return service.findSentRequests({ userId: request.user.sub, ...query });
   });
 
   // GET /friendships/:id
