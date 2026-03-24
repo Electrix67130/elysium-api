@@ -160,18 +160,23 @@ axios.delete('/users/:id')
 }
 ```
 
-#### GET /users/search
+#### GET /users/search `🔒 JWT`
 
-Recherche d'utilisateurs par username ou display_name. Minimum 3 caracteres requis.
+Recherche d'utilisateurs par username ou display_name (pagine). Exclut automatiquement l'utilisateur connecte, ses amis/demandes en cours, et les utilisateurs bloques (dans les deux sens).
 
 ```ts
-axios.get('/users/search?q=jul&limit=20')
+axios.get('/users/search?q=jul&page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
 // Response 200
-[
-    { id, username, display_name, avatar_url, is_online, country },
-    ...
-]
-// Response 400 si q < 3 caracteres
+{
+    data: [
+        { id, username, display_name, avatar_url, is_online, country },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+// q: 1-50 chars, page: min 1 (default 1), limit: 1-50 (default 20)
 ```
 
 ---
@@ -232,17 +237,20 @@ axios.get('/friendships?page=1&limit=20', {
 
 #### GET /friendships/pending `🔒 JWT`
 
-Retourne les demandes d'amis en attente recues par l'utilisateur connecte.
+Retourne les demandes d'amis en attente recues par l'utilisateur connecte (pagine).
 
 ```ts
-axios.get('/friendships/pending', {
+axios.get('/friendships/pending?page=1&limit=20', {
     headers: { Authorization: `Bearer ${accessToken}` }
 })
 // Response 200
-[
-    { friendship_id, created_at, user_id, username, display_name, avatar_url },
-    ...
-]
+{
+    data: [
+        { friendship_id, created_at, user_id, username, display_name, avatar_url },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
 ```
 
 **Create :**
@@ -263,6 +271,24 @@ axios.get('/friendships/pending', {
 ---
 
 ### User Blocks — `/user-blocks`
+
+#### GET /user-blocks/me `🔒 JWT`
+
+Retourne les utilisateurs bloques par l'utilisateur connecte (pagine).
+
+```ts
+axios.get('/user-blocks/me?page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+{
+    data: [
+        { block_id, blocked_at, id, username, display_name, avatar_url },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+```
 
 **Create :**
 ```ts

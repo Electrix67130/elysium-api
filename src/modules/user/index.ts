@@ -12,16 +12,17 @@ const crud = new CrudRouteBuilder({
 });
 
 const searchSchema = z.object({
-  q: z.string().min(3).max(50),
+  q: z.string().min(1).max(50),
+  page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
 export default fp((fastify, opts, done) => {
-  // GET /users/search?q=xxx — recherche par username/display_name (min 3 chars)
-  fastify.get('/users/search', async (request, reply) => {
-    const { q, limit } = searchSchema.parse(request.query);
+  // GET /users/search?q=xxx — recherche par username/display_name (exclut amis et bloques)
+  fastify.get('/users/search', { preHandler: [fastify.authenticate] }, async (request) => {
+    const { q, ...pagination } = searchSchema.parse(request.query);
     const service = new UserService(fastify.db);
-    return service.search(q, limit);
+    return service.search({ query: q, userId: request.user.sub, ...pagination });
   });
 
   crud.register(fastify, opts, done);

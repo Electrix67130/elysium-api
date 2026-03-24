@@ -22,9 +22,10 @@ export default fp((fastify, opts, done) => {
     return service.findFriendsOfUser({ userId: request.user.sub, ...query });
   });
 
-  // GET /friendships/pending — demandes d'amis en attente
+  // GET /friendships/pending — demandes d'amis en attente (pagine)
   fastify.get('/friendships/pending', { preHandler: [fastify.authenticate] }, async (request) => {
-    return service.findPendingRequests(request.user.sub);
+    const query = paginationSchema.parse(request.query);
+    return service.findPendingRequests({ userId: request.user.sub, ...query });
   });
 
   // GET /friendships/:id
@@ -37,8 +38,8 @@ export default fp((fastify, opts, done) => {
 
   // POST /friendships
   fastify.post('/friendships', async (request, reply) => {
-    const data = createFriendshipSchema.parse(request.body);
-    const item = await service.create(data as Record<string, unknown>);
+    const { sender_id, receiver_id } = createFriendshipSchema.parse(request.body);
+    const item = await service.createFriendship(sender_id, receiver_id);
     return reply.code(201).send(item);
   });
 
