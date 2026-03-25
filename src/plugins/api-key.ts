@@ -8,7 +8,9 @@ async function apiKey(fastify: FastifyInstance) {
   fastify.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
     if (PUBLIC_ROUTES.includes(request.url)) return;
 
-    const key = request.headers['x-api-key'];
+    // Pour WebSocket, l'API key est passee en query param (pas de headers custom possibles)
+    const query = request.query as Record<string, string>;
+    const key = request.headers['x-api-key'] || query.apiKey;
 
     if (!key || key !== env.API_KEY) {
       return reply.code(403).send({
