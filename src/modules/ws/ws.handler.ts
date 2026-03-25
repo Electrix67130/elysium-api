@@ -19,6 +19,10 @@ const wsMessageSchema = z.discriminatedUnion('type', [
     type: z.literal('typing:stop'),
     conversationId: z.string().uuid(),
   }),
+  z.object({
+    type: z.literal('conversation:read'),
+    conversationId: z.string().uuid(),
+  }),
 ]);
 
 class WsHandler {
@@ -55,6 +59,9 @@ class WsHandler {
       case 'typing:start':
       case 'typing:stop':
         await this.handleTyping(userId, parsed.conversationId, parsed.type);
+        break;
+      case 'conversation:read':
+        await this.handleConversationRead(userId, parsed.conversationId);
         break;
     }
   }
@@ -108,11 +115,39 @@ class WsHandler {
       sender_avatar_url: sender?.avatar_url,
     };
 
+    // Incrementer unread_count pour tous les membres sauf le sender
+    await this.db('conversation_member')
+      .where({ conversation_id: conversationId })
+      .whereNot({ user_id: userId })
+      .increment('unread_count', 1);
+
     const memberIds = await this.getConversationMemberIds(conversationId);
     this.connectionManager.broadcastToUsers(memberIds, {
       type: 'message:new',
       message: enrichedMessage,
     });
+  }
+
+  private async handleConversationRead(userId: string, conversationId: string): Promise<void> {
+    const now = new Date().toISOString();
+
+    // Remettre unread_count a 0 et mettre a jour last_read_at
+    await this.db('conversation_member')
+      .where({ user_id: userId, conversation_id: conversationId })
+      .update({
+        unread_count: 0,
+        last_read_at: now,
+        updated_at: this.db.fn.now(),
+      });
+
+    // Notifier les autres membres que cet utilisateur a lu la conversation
+    const memberIds = await this.getConversationMemberIds(conversationId);
+    this.connectionManager.broadcastToUsers(memberIds, {
+      type: 'conversation:read',
+      conversationId,
+      userId,
+      readAt: now,
+    }, userId);
   }
 
   private async handleTyping(userId: string, conversationId: string, type: 'typing:start' | 'typing:stop'): Promise<void> {
@@ -141,7 +176,6 @@ class WsHandler {
   }
 
   private async getContactUserIds(userId: string): Promise<string[]> {
-    // Tous les users qui partagent une conversation avec cet utilisateur
     const members = await this.db('conversation_member as cm1')
       .join('conversation_member as cm2', 'cm1.conversation_id', 'cm2.conversation_id')
       .where('cm1.user_id', userId)

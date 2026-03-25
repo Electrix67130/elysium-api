@@ -18,6 +18,8 @@ export type UpdateConversationMember = z.infer<typeof updateConversationMemberSc
 
 export type ConversationMemberRow = CreateConversationMember & {
   id: string;
+  unread_count: number;
+  last_read_at: string | null;
   created_at: string;
   updated_at: string;
   joined_at: string;

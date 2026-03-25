@@ -788,6 +788,9 @@ ws.send(JSON.stringify({
 // Indicateur de frappe
 ws.send(JSON.stringify({ type: 'typing:start', conversationId: string }))
 ws.send(JSON.stringify({ type: 'typing:stop', conversationId: string }))
+
+// Marquer une conversation comme lue
+ws.send(JSON.stringify({ type: 'conversation:read', conversationId: string }))
 ```
 
 ### Messages Serveur → Client
@@ -799,6 +802,9 @@ ws.send(JSON.stringify({ type: 'typing:stop', conversationId: string }))
 // Indicateur de frappe
 { type: 'typing:start', conversationId: string, userId: string, username: string }
 { type: 'typing:stop', conversationId: string, userId: string, username: string }
+
+// Accusé de lecture (un membre a lu la conversation)
+{ type: 'conversation:read', conversationId: string, userId: string, readAt: string }
 
 // Presence
 { type: 'presence:online', userId: string }
@@ -815,6 +821,8 @@ ws.send(JSON.stringify({ type: 'typing:stop', conversationId: string }))
 - La presence (online/offline) est automatiquement broadcastee a tous les contacts (users partageant une conversation)
 - Le serveur envoie un ping toutes les 30s pour detecter les connexions mortes
 - L'historique des messages reste accessible via `GET /chat-messages` (REST, pagine)
+- Quand un message est envoye, `unread_count` est incremente pour tous les membres sauf le sender
+- Quand `conversation:read` est envoye, `unread_count` est remis a 0 et `last_read_at` est mis a jour
 
 ---
 

@@ -136,6 +136,7 @@
 │     is_pinned         : BOOLEAN               │
 │     is_muted          : BOOLEAN               │
 │     unread_count      : INTEGER               │
+│     last_read_at      : TIMESTAMP             │  ← derniere lecture (null = jamais lu)
 │     joined_at         : TIMESTAMP             │
 ├──────────────────────────────────────────────┤
 │ UQ (user_id, conversation_id)                 │
