@@ -10,7 +10,7 @@ async function apiKey(fastify: FastifyInstance) {
 
     // Pour WebSocket, l'API key est passee en query param (pas de headers custom possibles)
     const query = request.query as Record<string, string>;
-    const key = request.headers['x-api-key'] || query.apiKey;
+    const key = request.headers['x-api-key'] || query.api_key;
 
     if (!key || key !== env.API_KEY) {
       return reply.code(403).send({

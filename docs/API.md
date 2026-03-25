@@ -770,7 +770,7 @@ Connexion WebSocket pour le chat en temps reel, les indicateurs de frappe et la 
 ### Connexion
 
 ```ts
-const ws = new WebSocket(`ws://localhost:3000/ws?token=${accessToken}&apiKey=${apiKey}`);
+const ws = new WebSocket(`ws://localhost:3000/ws?token=${accessToken}&api_key=${apiKey}`);
 ```
 
 L'authentification se fait via les query params `token` (JWT) et `apiKey` (cle API), car les browsers ne supportent pas les headers custom sur WebSocket. Si le token est invalide ou manquant, le serveur ferme la connexion avec le code `4401`. Si l'API key est manquante, le serveur retourne une 403.
