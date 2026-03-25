@@ -1,8 +1,7 @@
 import fp from 'fastify-plugin';
 import { z } from 'zod';
-import CrudRouteBuilder from '@/lib/crud-route-builder';
 import FriendshipService from './friendship.service';
-import { createFriendshipSchema, updateFriendshipSchema } from './friendship.schema';
+import { updateFriendshipSchema } from './friendship.schema';
 
 const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -13,56 +12,117 @@ const uuidParamSchema = z.object({
   id: z.string().uuid(),
 });
 
+const sendRequestSchema = z.object({
+  receiver_id: z.string().uuid(),
+});
+
 export default fp((fastify, opts, done) => {
   const service = new FriendshipService(fastify.db);
 
-  // GET /friendships — protege par JWT, retourne les amis de l'utilisateur connecte
+  // GET /friendships — amis acceptes de l'utilisateur connecte (pagine)
   fastify.get('/friendships', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = paginationSchema.parse(request.query);
     return service.findFriendsOfUser({ userId: request.user.sub, ...query });
   });
 
-  // GET /friendships/pending — demandes d'amis en attente recues (pagine)
+  // GET /friendships/pending — demandes recues en attente (pagine)
   fastify.get('/friendships/pending', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = paginationSchema.parse(request.query);
     return service.findPendingRequests({ userId: request.user.sub, ...query });
   });
 
-  // GET /friendships/sent — demandes d'amis en attente envoyees (pagine)
+  // GET /friendships/sent — demandes envoyees en attente (pagine)
   fastify.get('/friendships/sent', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = paginationSchema.parse(request.query);
     return service.findSentRequests({ userId: request.user.sub, ...query });
   });
 
   // GET /friendships/:id
-  fastify.get('/friendships/:id', async (request, reply) => {
+  fastify.get('/friendships/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = uuidParamSchema.parse(request.params);
     const item = await service.findById(id);
     if (!item) return reply.notFound('Friendship not found');
     return item;
   });
 
-  // POST /friendships
-  fastify.post('/friendships', async (request, reply) => {
-    const { sender_id, receiver_id } = createFriendshipSchema.parse(request.body);
-    const item = await service.createFriendship(sender_id, receiver_id);
+  // POST /friendships — envoyer une demande d'ami (sender = utilisateur connecte)
+  fastify.post('/friendships', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { receiver_id } = sendRequestSchema.parse(request.body);
+    const senderId = request.user.sub;
+    const item = await service.createFriendship(senderId, receiver_id);
+
+    // Infos du sender pour la notification WS
+    const sender = await fastify.db('user')
+      .where({ id: senderId })
+      .select('id', 'username', 'display_name', 'avatar_url')
+      .first();
+
+    fastify.ws.broadcastToUsers([receiver_id], {
+      type: 'friendship:request',
+      friendship: item,
+      sender,
+    });
+
     return reply.code(201).send(item);
   });
 
-  // PATCH /friendships/:id
-  fastify.patch('/friendships/:id', async (request, reply) => {
+  // PATCH /friendships/:id — accepter/modifier une demande
+  fastify.patch('/friendships/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = uuidParamSchema.parse(request.params);
     const data = updateFriendshipSchema.parse(request.body);
+
+    // Recuperer la friendship avant update pour connaitre l'autre personne
+    const existing = await service.findById(id);
+    if (!existing) return reply.notFound('Friendship not found');
+
     const item = await service.update(id, data as Record<string, unknown>);
-    if (!item) return reply.notFound('Friendship not found');
+
+    // Si la demande est acceptee, notifier le sender
+    if (data.status === 'accepted') {
+      const row = existing as Record<string, unknown>;
+      const acceptedBy = request.user.sub;
+      const otherUserId = row.sender_id === acceptedBy
+        ? row.receiver_id as string
+        : row.sender_id as string;
+
+      const user = await fastify.db('user')
+        .where({ id: acceptedBy })
+        .select('id', 'username', 'display_name', 'avatar_url')
+        .first();
+
+      fastify.ws.broadcastToUsers([otherUserId], {
+        type: 'friendship:accepted',
+        friendship: item,
+        user,
+      });
+    }
+
     return item;
   });
 
-  // DELETE /friendships/:id
-  fastify.delete('/friendships/:id', async (request, reply) => {
+  // DELETE /friendships/:id — supprimer/refuser une demande ou retirer un ami
+  fastify.delete('/friendships/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const { id } = uuidParamSchema.parse(request.params);
+
+    // Recuperer la friendship avant suppression pour notifier l'autre personne
+    const existing = await service.findById(id);
+    if (!existing) return reply.notFound('Friendship not found');
+
     const deleted = await service.delete(id);
     if (!deleted) return reply.notFound('Friendship not found');
+
+    const row = existing as Record<string, unknown>;
+    const deletedBy = request.user.sub;
+    const otherUserId = row.sender_id === deletedBy
+      ? row.receiver_id as string
+      : row.sender_id as string;
+
+    fastify.ws.broadcastToUsers([otherUserId], {
+      type: 'friendship:removed',
+      friendshipId: id,
+      userId: deletedBy,
+    });
+
     return reply.code(204).send();
   });
 

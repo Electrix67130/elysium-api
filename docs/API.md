@@ -271,19 +271,55 @@ axios.get('/friendships/sent?page=1&limit=20', {
 }
 ```
 
-**Create :**
+#### POST /friendships `🔒 JWT`
+
+Envoyer une demande d'ami. Le sender est automatiquement l'utilisateur connecte. Notifie le receiver via WebSocket (`friendship:request`).
+
 ```ts
-{
-    sender_id: string,       // UUID, requis
+axios.post('/friendships', {
     receiver_id: string,     // UUID, requis
-}
+}, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 201
+// Response 409 si la demande existe deja
 ```
 
-**Update :**
+#### PATCH /friendships/:id `🔒 JWT`
+
+Accepter une demande d'ami. Notifie l'autre personne via WebSocket (`friendship:accepted`).
+
 ```ts
-{
-    status?: 'pending' | 'accepted',
-}
+axios.patch('/friendships/:id', {
+    status: 'accepted',
+}, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200 | 404
+```
+
+#### DELETE /friendships/:id `🔒 JWT`
+
+Refuser une demande ou retirer un ami. Notifie l'autre personne via WebSocket (`friendship:removed`).
+
+```ts
+axios.delete('/friendships/:id', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 204 | 404
+```
+
+**Evenements WebSocket lies aux friendships :**
+
+```ts
+// Nouvelle demande recue
+{ type: 'friendship:request', friendship: FriendshipRow, sender: { id, username, display_name, avatar_url } }
+
+// Demande acceptee
+{ type: 'friendship:accepted', friendship: FriendshipRow, user: { id, username, display_name, avatar_url } }
+
+// Ami supprime / demande refusee
+{ type: 'friendship:removed', friendshipId: string, userId: string }
 ```
 
 ---
