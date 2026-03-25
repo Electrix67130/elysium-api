@@ -9,6 +9,7 @@ import database from './plugins/database';
 import errorHandler from './plugins/error-handler';
 import apiKey from './plugins/api-key';
 import jwtPlugin from './plugins/jwt';
+import websocketPlugin from './plugins/websocket';
 
 interface AppOptions extends FastifyServerOptions {
   logLevel?: string;
@@ -34,6 +35,7 @@ function buildApp(opts: AppOptions = {}) {
   app.register(errorHandler);
   app.register(apiKey);
   app.register(jwtPlugin);
+  app.register(websocketPlugin);
 
   // Auto-load all modules (each module registers its own routes)
   app.register(autoload, {

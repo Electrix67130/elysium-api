@@ -727,6 +727,61 @@ axios.patch('/tournament-recurrences/:id/deactivate')
 
 ---
 
+## WebSocket — `/ws`
+
+Connexion WebSocket pour le chat en temps reel, les indicateurs de frappe et la presence en ligne.
+
+### Connexion
+
+```ts
+const ws = new WebSocket(`ws://localhost:3000/ws?token=${accessToken}`);
+```
+
+L'authentification se fait via le query param `token` (les browsers ne supportent pas les headers custom sur WebSocket). Si le token est invalide ou manquant, le serveur ferme la connexion avec le code `4401`.
+
+### Messages Client → Serveur
+
+```ts
+// Envoyer un message
+ws.send(JSON.stringify({
+    type: 'message:send',
+    conversationId: string,  // UUID
+    content: string,         // min 1 char
+}))
+
+// Indicateur de frappe
+ws.send(JSON.stringify({ type: 'typing:start', conversationId: string }))
+ws.send(JSON.stringify({ type: 'typing:stop', conversationId: string }))
+```
+
+### Messages Serveur → Client
+
+```ts
+// Nouveau message (broadcast a tous les membres de la conversation)
+{ type: 'message:new', message: { id, conversation_id, sender_id, content, sender_username, sender_display_name, sender_avatar_url, created_at } }
+
+// Indicateur de frappe
+{ type: 'typing:start', conversationId: string, userId: string, username: string }
+{ type: 'typing:stop', conversationId: string, userId: string, username: string }
+
+// Presence
+{ type: 'presence:online', userId: string }
+{ type: 'presence:offline', userId: string }
+
+// Erreur
+{ type: 'error', message: string }
+```
+
+### Notes
+
+- Le `sender_id` est toujours extrait du JWT, jamais du payload client (anti-impersonation)
+- L'utilisateur doit etre membre de la conversation pour envoyer un message ou un typing indicator
+- La presence (online/offline) est automatiquement broadcastee a tous les contacts (users partageant une conversation)
+- Le serveur envoie un ping toutes les 30s pour detecter les connexions mortes
+- L'historique des messages reste accessible via `GET /chat-messages` (REST, pagine)
+
+---
+
 ## Gestion des erreurs
 
 Toutes les erreurs suivent le meme format :
