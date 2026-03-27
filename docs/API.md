@@ -551,6 +551,25 @@ axios.post('/conversations/tournament/:tournamentId/sync')
 }
 ```
 
+#### GET /conversations/:conversationId/messages `🔒 JWT`
+
+Retourne les messages d'une conversation (paginee). Fonctionne pour les DM comme pour les conversations de groupe/equipe/tournoi.
+
+```ts
+axios.get('/conversations/550e8400-e29b-41d4-a716-446655440000/messages?page=1&limit=50&order=asc', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+{
+    data: [
+        { id, conversation_id, sender_id, content, sender_tag, sender_tag_color, created_at, updated_at },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+// Response 404 si la conversation n'existe pas
+```
+
 ---
 
 ### Message Reactions — `/message-reactions`
@@ -820,7 +839,7 @@ ws.send(JSON.stringify({ type: 'conversation:read', conversationId: string }))
 - L'utilisateur doit etre membre de la conversation pour envoyer un message ou un typing indicator
 - La presence (online/offline) est automatiquement broadcastee a tous les contacts (users partageant une conversation)
 - Le serveur envoie un ping toutes les 30s pour detecter les connexions mortes
-- L'historique des messages reste accessible via `GET /chat-messages` (REST, pagine)
+- L'historique des messages reste accessible via `GET /conversations/:id/messages` (REST, pagine)
 - Quand un message est envoye, `unread_count` est incremente pour tous les membres sauf le sender
 - Quand `conversation:read` est envoye, `unread_count` est remis a 0 et `last_read_at` est mis a jour
 
