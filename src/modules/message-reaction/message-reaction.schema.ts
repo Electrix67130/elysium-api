@@ -16,4 +16,5 @@ export type UpdateMessageReaction = z.infer<typeof updateMessageReactionSchema>;
 export type MessageReactionRow = CreateMessageReaction & {
   id: string;
   created_at: string;
+  updated_at: string;
 };
