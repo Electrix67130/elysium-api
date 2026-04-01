@@ -214,11 +214,34 @@ axios.get('/users/search?q=jul&page=1&limit=20', {
 
 ---
 
+### Friends — `/friends`
+
+#### GET /friends `🔒 JWT`
+
+Retourne les profils des amis acceptes de l'utilisateur connecte (pagine).
+
+```ts
+axios.get('/friends?page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 200
+{
+    data: [
+        { friendship_id, id, username, display_name, avatar_url, is_online, last_seen_at, status_text },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+// Response 401 si token manquant/invalide
+```
+
+---
+
 ### Friendships — `/friendships`
 
 #### GET /friendships `🔒 JWT`
 
-Retourne les amis acceptes de l'utilisateur connecte avec leurs infos (paginee).
+Retourne les rows brutes de la table friendship (paginee).
 
 ```ts
 axios.get('/friendships?page=1&limit=20', {
@@ -227,7 +250,7 @@ axios.get('/friendships?page=1&limit=20', {
 // Response 200
 {
     data: [
-        { id, username, display_name, avatar_url, is_online, last_seen_at, status_text },
+        { id, sender_id, receiver_id, status, created_at, updated_at },
         ...
     ],
     meta: { total, page, limit, totalPages }

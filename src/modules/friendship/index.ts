@@ -19,8 +19,8 @@ const sendRequestSchema = z.object({
 export default fp((fastify, opts, done) => {
   const service = new FriendshipService(fastify.db);
 
-  // GET /friendships — amis acceptes de l'utilisateur connecte (pagine)
-  fastify.get('/friendships', { preHandler: [fastify.authenticate] }, async (request) => {
+  // GET /friends — profils des amis acceptes de l'utilisateur connecte (pagine)
+  fastify.get('/friends', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = paginationSchema.parse(request.query);
     return service.findFriendsOfUser({ userId: request.user.sub, ...query });
   });
@@ -35,6 +35,12 @@ export default fp((fastify, opts, done) => {
   fastify.get('/friendships/sent', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = paginationSchema.parse(request.query);
     return service.findSentRequests({ userId: request.user.sub, ...query });
+  });
+
+  // GET /friendships — liste paginee des rows friendship brutes
+  fastify.get('/friendships', { preHandler: [fastify.authenticate] }, async (request) => {
+    const query = paginationSchema.parse(request.query);
+    return service.findAll(query);
   });
 
   // GET /friendships/:id

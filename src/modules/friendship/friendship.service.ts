@@ -73,10 +73,13 @@ class FriendshipService extends BaseService<FriendshipRow> {
       .limit(limit)
       .offset((page - 1) * limit);
 
-    // Recuperer les IDs des amis (l'autre personne)
-    const friendIds = friendships.map((f: FriendshipRow) =>
-      f.sender_id === userId ? f.receiver_id : f.sender_id,
-    );
+    // Recuperer les IDs des amis (l'autre personne) + le friendship_id
+    const friendEntries = friendships.map((f: FriendshipRow) => ({
+      friendshipId: f.id,
+      friendId: f.sender_id === userId ? f.receiver_id : f.sender_id,
+    }));
+
+    const friendIds = friendEntries.map((e) => e.friendId);
 
     // Fetch les infos des amis
     let friends: Record<string, unknown>[] = [];
@@ -86,9 +89,15 @@ class FriendshipService extends BaseService<FriendshipRow> {
         .select('id', 'username', 'display_name', 'avatar_url', 'is_online', 'last_seen_at', 'status_text');
     }
 
-    // Garder l'ordre des friendships
+    // Garder l'ordre des friendships et inclure le friendship_id
     const friendMap = new Map(friends.map((f) => [f.id as string, f]));
-    const data = friendIds.map((id: string) => friendMap.get(id)).filter(Boolean);
+    const data = friendEntries
+      .map((e) => {
+        const friend = friendMap.get(e.friendId);
+        if (!friend) return null;
+        return { friendship_id: e.friendshipId, ...friend };
+      })
+      .filter(Boolean);
 
     return {
       data,
