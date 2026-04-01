@@ -165,8 +165,9 @@
 │ FK  user_id           : UUID → USER          │
 │     emoji             : VARCHAR(10)           │
 │     created_at        : TIMESTAMP             │
+│     updated_at        : TIMESTAMP             │
 ├──────────────────────────────────────────────┤
-│ UQ (message_id, user_id, emoji)               │
+│ UQ (message_id, user_id)                      │
 └──────────────────────────────────────────────┘
 
 
