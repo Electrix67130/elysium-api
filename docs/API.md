@@ -212,6 +212,23 @@ axios.get('/users/search?q=jul&page=1&limit=20', {
 
 **Update :** memes champs, tous optionnels.
 
+#### GET /teams/search
+
+Recherche de teams par nom (insensible a la casse, paginee).
+
+```ts
+axios.get('/teams/search?q=alpha&page=1&limit=20')
+// Response 200
+{
+    data: [
+        { id, name, image_url, description, game_id, created_at, updated_at },
+        ...
+    ],
+    meta: { total, page, limit, totalPages }
+}
+// Response 400 si q manquant
+```
+
 ---
 
 ### Friends — `/friends`
