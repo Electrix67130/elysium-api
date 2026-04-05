@@ -96,10 +96,32 @@ class WsHandler {
   }
 
   private async handleSendMessage(userId: string, conversationId: string, content: string): Promise<void> {
+    // Determiner le sender_tag si conversation de type team
+    const conversation = await this.db('conversation')
+      .where({ id: conversationId })
+      .select('type', 'team_id')
+      .first();
+
+    let senderTag: string | undefined;
+    let senderTagColor: string | undefined;
+
+    if (conversation?.type === 'team' && conversation.team_id) {
+      const membership = await this.db('team_membership')
+        .where({ team_id: conversation.team_id, user_id: userId })
+        .select('role')
+        .first();
+
+      if (membership?.role && membership.role !== 'membre') {
+        senderTag = membership.role === 'capitaine' ? 'Capitaine' : 'Manager';
+        senderTagColor = membership.role === 'capitaine' ? '#FFD700' : '#C0C0C0';
+      }
+    }
+
     const message = await this.chatMessageService.create({
       conversation_id: conversationId,
       sender_id: userId,
       content,
+      ...(senderTag && { sender_tag: senderTag, sender_tag_color: senderTagColor }),
     } as Record<string, unknown>);
 
     // Enrichir avec les infos du sender
