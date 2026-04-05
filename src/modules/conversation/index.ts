@@ -7,6 +7,7 @@ import {
   createDmSchema,
   createTeamConversationSchema,
   createTournamentConversationSchema,
+  createTeamsConversationSchema,
 } from './conversation.schema';
 
 const paginationSchema = z.object({
@@ -79,6 +80,13 @@ export default fp((fastify, opts, done) => {
   fastify.post('/conversations/tournament', async (request, reply) => {
     const { tournament_id, name } = createTournamentConversationSchema.parse(request.body);
     const conversation = await service.createForTournament(tournament_id, name);
+    return reply.code(201).send(conversation);
+  });
+
+  // POST /conversations/teams — creer une conversation entre deux equipes
+  fastify.post('/conversations/teams', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { team_id_1, team_id_2, name } = createTeamsConversationSchema.parse(request.body);
+    const conversation = await service.createBetweenTeams(team_id_1, team_id_2, name);
     return reply.code(201).send(conversation);
   });
 

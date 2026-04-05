@@ -31,6 +31,14 @@ export const createTournamentConversationSchema = z.object({
   name: z.string().max(100).optional(),
 });
 
+export const createTeamsConversationSchema = z.object({
+  team_id_1: z.string().uuid(),
+  team_id_2: z.string().uuid(),
+  name: z.string().max(100).optional(),
+}).refine((data) => data.team_id_1 !== data.team_id_2, {
+  message: 'Cannot create a conversation between the same team',
+});
+
 export type CreateConversation = z.infer<typeof createConversationSchema>;
 export type UpdateConversation = z.infer<typeof updateConversationSchema>;
 

@@ -19,10 +19,10 @@ const searchSchema = z.object({
 
 export default fp((fastify, opts, done) => {
   // GET /teams/search — enregistre AVANT le CRUD pour eviter le conflit avec /teams/:id
-  fastify.get('/teams/search', async (request) => {
+  fastify.get('/teams/search', { preHandler: [fastify.authenticate] }, async (request) => {
     const query = searchSchema.parse(request.query);
     const service = new TeamService(fastify.db);
-    return service.search(query);
+    return service.search({ ...query, excludeUserId: request.user.sub });
   });
 
   crud.register(fastify, opts, done);

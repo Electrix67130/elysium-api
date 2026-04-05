@@ -15,12 +15,21 @@ class TeamService extends BaseService<TeamRow> {
     q,
     page = 1,
     limit = 20,
+    excludeUserId,
   }: {
     q: string;
     page?: number;
     limit?: number;
+    excludeUserId?: string;
   }): Promise<PaginatedResult<TeamRow>> {
     const baseQuery = this.db(this.table).whereILike('name', `%${q}%`);
+
+    // Exclure les équipes dont l'utilisateur est déjà membre
+    if (excludeUserId) {
+      baseQuery.whereNotIn('id', function () {
+        this.select('team_id').from('team_membership').where('user_id', excludeUserId);
+      });
+    }
 
     const [{ count }] = await baseQuery.clone().count('* as count') as { count: string }[];
     const data = await baseQuery.clone()

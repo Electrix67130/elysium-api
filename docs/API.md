@@ -212,12 +212,14 @@ axios.get('/users/search?q=jul&page=1&limit=20', {
 
 **Update :** memes champs, tous optionnels.
 
-#### GET /teams/search
+#### GET /teams/search `🔒 JWT`
 
-Recherche de teams par nom (insensible a la casse, paginee).
+Recherche de teams par nom (insensible a la casse, paginee). Exclut les equipes dont l'utilisateur connecte est deja membre.
 
 ```ts
-axios.get('/teams/search?q=alpha&page=1&limit=20')
+axios.get('/teams/search?q=alpha&page=1&limit=20', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
 // Response 200
 {
     data: [
@@ -526,6 +528,22 @@ axios.post('/conversations/tournament', {
     name?: string,         // max 100 chars
 })
 // Response 201 — conversation + tous les participants status='confirmed' sont ajoutes
+```
+
+#### POST /conversations/teams `🔒 JWT`
+
+Cree une conversation group entre deux equipes. Fusionne les membres des deux equipes (sans doublons).
+
+```ts
+axios.post('/conversations/teams', {
+    team_id_1: string,   // UUID, requis
+    team_id_2: string,   // UUID, requis (different de team_id_1)
+    name?: string,       // max 100 chars
+}, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+})
+// Response 201 — conversation de type 'group' avec les membres des 2 equipes
+// Response 400 si meme team_id
 ```
 
 #### POST /conversations/team/:teamId/sync

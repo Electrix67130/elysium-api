@@ -202,6 +202,34 @@ class ConversationService extends BaseService<ConversationRow> {
   }
 
   /**
+   * Cree une conversation group entre deux equipes (fusion des membres, sans doublons).
+   */
+  async createBetweenTeams(teamId1: string, teamId2: string, name?: string): Promise<ConversationRow> {
+    return this.db.transaction(async (trx) => {
+      const [conversation] = await trx('conversation')
+        .insert({ type: 'group', name })
+        .returning('*');
+
+      // Recuperer les membres des deux equipes (sans doublons)
+      const members = await trx('team_membership')
+        .whereIn('team_id', [teamId1, teamId2])
+        .select('user_id')
+        .groupBy('user_id');
+
+      if (members.length > 0) {
+        await trx('conversation_member').insert(
+          members.map((m: { user_id: string }) => ({
+            user_id: m.user_id,
+            conversation_id: conversation.id,
+          })),
+        );
+      }
+
+      return conversation as ConversationRow;
+    });
+  }
+
+  /**
    * Synchronise les membres d'une conversation team avec les membres actuels de l'equipe.
    */
   async syncTeamMembers(teamId: string): Promise<void> {
