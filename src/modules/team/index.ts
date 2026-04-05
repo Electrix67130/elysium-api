@@ -18,14 +18,12 @@ const searchSchema = z.object({
 });
 
 export default fp((fastify, opts, done) => {
-  crud.register(fastify, opts, () => {
-    // GET /teams/search?q=...&page=1&limit=20
-    fastify.get('/teams/search', async (request) => {
-      const query = searchSchema.parse(request.query);
-      const service = new TeamService(fastify.db);
-      return service.search(query);
-    });
-
-    done();
+  // GET /teams/search — enregistre AVANT le CRUD pour eviter le conflit avec /teams/:id
+  fastify.get('/teams/search', async (request) => {
+    const query = searchSchema.parse(request.query);
+    const service = new TeamService(fastify.db);
+    return service.search(query);
   });
+
+  crud.register(fastify, opts, done);
 }, { name: 'team-module' });
